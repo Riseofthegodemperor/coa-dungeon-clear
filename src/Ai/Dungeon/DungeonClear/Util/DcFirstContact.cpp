@@ -70,8 +70,8 @@ void DcFirstContact::OnEnterCombat(Player* bot, Unit* enemy)
     PlayerbotAI* ownerAI = owner ? GET_PLAYERBOT_AI(owner) : nullptr;
     if (!ownerAI)
         return;
-    DcRunState const& run = DcRun::Of(ownerAI);
-    if (!run.enabled || run.paused)
+    DcRunState const* run = DcRun::TryOf(ownerAI);
+    if (!run || !run->enabled || run->paused)
         return;
 
     AiObjectContext* ctx = botAI->GetAiObjectContext();
@@ -85,8 +85,9 @@ void DcFirstContact::OnEnterCombat(Player* bot, Unit* enemy)
     // load-bearing field: an objective appearing here at all means it was NOT
     // pulled, because a pulled one goes through the pull FSM and gets a pull row.
     bool isObjective = false;
+    auto* nextVal = ctx->GetValue<std::optional<DungeonBossInfo>>(DcKey::NextDungeonBoss);
     std::optional<DungeonBossInfo> const next =
-        ctx->GetValue<std::optional<DungeonBossInfo>>(DcKey::NextDungeonBoss)->Get();
+        nextVal ? nextVal->Get() : std::optional<DungeonBossInfo>{};
     if (next.has_value() && next->entry == entry)
         isObjective = true;
 
@@ -96,7 +97,10 @@ void DcFirstContact::OnEnterCombat(Player* bot, Unit* enemy)
     if (asCreature)
         homeDist = asCreature->GetDistance(asCreature->GetHomePosition());
 
-    DcPullContext const& pull = ctx->GetValue<DcPullContext&>(DcKey::PullContext)->Get();
+    auto* pullCtxVal = ctx->GetValue<DcPullContext&>(DcKey::PullContext);
+    if (!pullCtxVal)
+        return;
+    DcPullContext const& pull = pullCtxVal->Get();
     uint32 const refs =
         static_cast<uint32>(enemy->GetCombatManager().GetPvECombatRefs().size());
     uint32 const alreadyFighting = CountPartyAlreadyInCombat(bot);
@@ -186,8 +190,8 @@ void DcFirstContact::OnCreatureEngage(Creature* creature, Unit* target)
     PlayerbotAI* ownerAI = owner ? GET_PLAYERBOT_AI(owner) : nullptr;
     if (!ownerAI)
         return;
-    DcRunState const& run = DcRun::Of(ownerAI);
-    if (!run.enabled || run.paused)
+    DcRunState const* run = DcRun::TryOf(ownerAI);
+    if (!run || !run->enabled || run->paused)
         return;
 
     // A fresh fight is OnEnterCombat's line; only a join into a running one is
@@ -219,13 +223,16 @@ void DcFirstContact::OnCreatureEngage(Creature* creature, Unit* target)
     std::string campText = "none";
     if (AiObjectContext* ownerCtx = ownerAI->GetAiObjectContext())
     {
-        DcPullContext const& pull =
-            ownerCtx->GetValue<DcPullContext&>(DcKey::PullContext)->Get();
-        if (pull.HasCamp())
-            campText = Acore::StringFormat("({:.1f},{:.1f},{:.1f}) {:.1f}yd off",
-                                           pull.camp.GetPositionX(), pull.camp.GetPositionY(),
-                                           pull.camp.GetPositionZ(),
-                                           creature->GetExactDist(&pull.camp));
+        auto* ownPullVal = ownerCtx->GetValue<DcPullContext&>(DcKey::PullContext);
+        if (ownPullVal)
+        {
+            DcPullContext const& pull = ownPullVal->Get();
+            if (pull.HasCamp())
+                campText = Acore::StringFormat("({:.1f},{:.1f},{:.1f}) {:.1f}yd off",
+                                               pull.camp.GetPositionX(), pull.camp.GetPositionY(),
+                                               pull.camp.GetPositionZ(),
+                                               creature->GetExactDist(&pull.camp));
+        }
     }
 
     DC_PULL_INFO("[DC:{}] late joiner: {} (entry {}) engaged {} at {:.1f}yd (LOS {}) | "

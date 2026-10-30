@@ -187,22 +187,24 @@ namespace
         PlayerbotAI* leaderAI = GET_PLAYERBOT_AI(leader);
         if (!leaderAI)
             return 0;
-        DcRunState& run = DcRun::Of(leaderAI);
+        DcRunState* run = DcRun::TryOf(leaderAI);
+        if (!run)
+            return 0;
 
         if (!leader->IsInCombat())
         {
-            run.leaderCombatSinceMs = 0;
-            run.leaderFirstHitMs = 0;
+            run->leaderCombatSinceMs = 0;
+            run->leaderFirstHitMs = 0;
             return 0;
         }
-        if (run.leaderCombatSinceMs != 0)
-            return run.leaderCombatSinceMs;
+        if (run->leaderCombatSinceMs != 0)
+            return run->leaderCombatSinceMs;
 
         // First in-combat tick: stamp it. Never store 0 (it reads as "out of
         // combat"); a leader whose combat began at getMSTime()==0 latches to 1.
         uint32 const now = getMSTime();
-        run.leaderCombatSinceMs = now != 0 ? now : 1u;
-        return run.leaderCombatSinceMs;
+        run->leaderCombatSinceMs = now != 0 ? now : 1u;
+        return run->leaderCombatSinceMs;
     }
 
     // True when the TANK's fight is live: the reference `bot` — always the elected
@@ -1015,18 +1017,20 @@ void DcLeaderSignal::NoteLeaderHit(Player* attacker)
     if (!map || !map->IsDungeon())
         return;
     PlayerbotAI* ai = GET_PLAYERBOT_AI(attacker);
-    if (!ai || !ai->GetAiObjectContext())
+    if (!ai)
         return;
-    DcRunState& run = DcRun::Of(ai);
+    DcRunState* run = DcRun::TryOf(ai);
+    if (!run)
+        return;
     // `enabled` is leader-owned: followers never set it, so this is the leader.
-    if (!run.enabled || run.paused)
+    if (!run->enabled || run->paused)
         return;
     // Stamp the fight start first, so a hit is never older than its own fight.
     uint32 const since = LeaderCombatSince(attacker);
-    if (run.leaderFirstHitMs != 0 && run.leaderFirstHitMs >= since)
+    if (run->leaderFirstHitMs != 0 && run->leaderFirstHitMs >= since)
         return;
     uint32 const now = getMSTime();
-    run.leaderFirstHitMs = now != 0 ? now : 1u;
+    run->leaderFirstHitMs = now != 0 ? now : 1u;
 }
 
 void DcLeaderSignal::NoteLeaderEnterCombat(Player* player)
@@ -1037,14 +1041,14 @@ void DcLeaderSignal::NoteLeaderEnterCombat(Player* player)
     if (!map || !map->IsDungeon())
         return;
     PlayerbotAI* ai = GET_PLAYERBOT_AI(player);
-    if (!ai || !ai->GetAiObjectContext())
+    if (!ai)
         return;
-    DcRunState& run = DcRun::Of(ai);
-    if (!run.enabled)
+    DcRunState* run = DcRun::TryOf(ai);
+    if (!run || !run->enabled)
         return;  // leader-owned flag: only the DC leader is stamped
     uint32 const now = getMSTime();
-    run.leaderCombatSinceMs = now != 0 ? now : 1u;
-    run.leaderFirstHitMs = 0;
+    run->leaderCombatSinceMs = now != 0 ? now : 1u;
+    run->leaderFirstHitMs = 0;
 }
 
 bool DcLeaderSignal::ShouldHoldDpsDamage(Player* bot)

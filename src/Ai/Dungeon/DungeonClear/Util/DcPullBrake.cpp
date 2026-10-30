@@ -44,7 +44,10 @@ void DcPullBrake::OnEnterCombat(Player* bot)
     if (!ctx)
         return;
 
-    DcPullContext& pull = ctx->GetValue<DcPullContext&>(DcKey::PullContext)->Get();
+    auto* pullVal = ctx->GetValue<DcPullContext&>(DcKey::PullContext);
+    if (!pullVal)
+        return;
+    DcPullContext& pull = pullVal->Get();
 
     // UNPLANNED AGGRO WHILE SCOUTING. The maneuver will drag this to a fresh camp,
     // but only on its first combat tick — and until then the phase reads Idle, the

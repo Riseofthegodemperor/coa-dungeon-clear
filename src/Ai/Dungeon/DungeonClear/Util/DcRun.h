@@ -30,6 +30,19 @@ namespace DcRun
         return Of(botAI->GetAiObjectContext());
     }
 
+    inline DcRunState* TryOf(AiObjectContext* ctx)
+    {
+        if (!ctx)
+            return nullptr;
+        auto* val = ctx->GetValue<DcRunState&>(DcKey::RunState);
+        return val ? &val->Get() : nullptr;
+    }
+
+    inline DcRunState* TryOf(PlayerbotAI* botAI)
+    {
+        return botAI ? TryOf(botAI->GetAiObjectContext()) : nullptr;
+    }
+
     // Is this a raid run? Reads the caller's own run state — meaningful on the
     // LEADER's context (followers' copies stay at defaults, like `enabled`).
     // Cross-bot callers resolve the leader first, exactly as they do for the
