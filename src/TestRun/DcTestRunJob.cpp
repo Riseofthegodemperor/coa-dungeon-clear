@@ -903,7 +903,8 @@ void DcTestRunJob::TickProvisioning()
 
     std::string pickedSpec;
     int const specNo = DcBotProvisioning::ResolveSpecNo(slot.classId, slot.specName, slot.fallbackSpec, &pickedSpec);
-    if (specNo < 0 && (slot.role == std::string("tank") || slot.role == std::string("heal")))
+    if (specNo < 0 && !DcBotProvisioning::IsCoaClass(slot.classId) &&
+        (slot.role == std::string("tank") || slot.role == std::string("heal")))
     {
         // A random-rolled tank/healer spec would invalidate the whole run.
         FailSetup(std::string("no premade spec template matching '") + slot.specName +
@@ -937,7 +938,10 @@ void DcTestRunJob::TickProvisioning()
     // ResetStrategies). Shared with the RDF queue fill so the two subsystems
     // cannot drift apart on an order-sensitive pass that cost live runs to get
     // right — see Util/DcBotProvisioning.h.
-    DcBotProvisioning::Roll(bot, _level, _gear.quality, gearScoreLimit, specNo);
+    if (DcBotProvisioning::IsCoaClass(slot.classId))
+        DcBotProvisioning::RollCoa(bot, _level, _gear.quality, gearScoreLimit, slot.role);
+    else
+        DcBotProvisioning::Roll(bot, _level, _gear.quality, gearScoreLimit, specNo);
 
     DcTestRunRecord::CompEntry entry;
     entry.name = bot->GetName();

@@ -52,6 +52,17 @@ namespace DcBotProvisioning
     // factory itself does with a 0).
     void Roll(Player* bot, std::uint32_t level, std::uint32_t quality,
               std::uint32_t gearScoreLimit, int specNo);
+
+    // True when classId is a CoA custom class (12+). CoA classes use the
+    // Ascension specialization system; premade spec templates do not apply.
+    bool IsCoaClass(std::uint8_t classId);
+
+    // CoA-class variant of Roll. Calls Roll with specNo=-1, then forces the bot
+    // into a specialization of `role` ("tank"|"heal"|"dps") via AssignCoaRole,
+    // re-gears for the new spec, and applies CoA Character Advancement talents.
+    // Like Roll, the caller must have claimed DcProvisionBudget::Take() first.
+    void RollCoa(Player* bot, std::uint32_t level, std::uint32_t quality,
+                 std::uint32_t gearScoreLimit, char const* role);
 }
 
 #endif  // _PLAYERBOT_DCBOTPROVISIONING_H

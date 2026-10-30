@@ -5,6 +5,8 @@
 
 #include "Util/DcBotProvisioning.h"
 
+#include <string_view>
+
 #include "Item.h"
 #include "Player.h"
 
@@ -13,6 +15,9 @@
 #include "PlayerbotFactory.h"
 #include "Playerbots.h"
 #include "Util/DcPlayerbotsConfig.h"
+
+#include "AscensionSpecialization.h"
+#include "CoaSpecialization.h"
 
 namespace DcBotProvisioning
 {
@@ -30,8 +35,50 @@ namespace DcBotProvisioning
             case 8:  return "mage";
             case 9:  return "warlock";
             case 11: return "druid";
+            case 12: return "barbarian";
+            case 13: return "witchdoctor";
+            case 14: return "felsworn";
+            case 15: return "witchhunter";
+            case 16: return "stormbringer";
+            case 17: return "knightofxoroth";
+            case 18: return "guardian";
+            case 19: return "templar";
+            case 20: return "bloodmage";
+            case 21: return "ranger";
+            case 22: return "chronomancer";
+            case 23: return "necromancer";
+            case 24: return "pyromancer";
+            case 25: return "cultist";
+            case 26: return "starcaller";
+            case 27: return "suncleric";
+            case 28: return "tinker";
+            case 29: return "venomancer";
+            case 30: return "reaper";
+            case 31: return "primalist";
+            case 32: return "runemaster";
         }
         return "unknown";
+    }
+
+    bool IsCoaClass(std::uint8_t classId)
+    {
+        return IsAscensionCustomClassId(classId);
+    }
+
+    void RollCoa(Player* bot, std::uint32_t level, std::uint32_t quality,
+                 std::uint32_t gearScoreLimit, char const* role)
+    {
+        Roll(bot, level, quality, gearScoreLimit, -1);
+
+        CoaRole const coaRole = std::string_view(role) == "tank" ? CoaRole::Tank
+                              : std::string_view(role) == "heal" ? CoaRole::Heal
+                              : CoaRole::Dps;
+
+        if (GetCoaRole(bot) != coaRole && AssignCoaRole(bot, coaRole))
+        {
+            PlayerbotFactory(bot, level, quality, gearScoreLimit).InitEquipment(false);
+            ApplyCoaTalents(bot);
+        }
     }
 
     // Premade-spec template index for the wanted spec name — exact match

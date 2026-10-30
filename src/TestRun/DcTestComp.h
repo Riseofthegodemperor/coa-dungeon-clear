@@ -37,6 +37,11 @@ namespace DcTestComp
     struct Slot
     {
         std::uint8_t classId;      // 1=warr 2=pala 3=hunt 4=rogue 5=priest 6=dk 7=sham 8=mage 9=lock 11=druid
+                               // CoA custom: 12=Barbarian 13=WitchDoctor 14=Felsworn 15=WitchHunter
+                               // 16=Stormbringer 17=KnightOfXoroth 18=Guardian 19=Templar 20=Bloodmage
+                               // 21=Ranger 22=Chronomancer 23=Necromancer 24=Pyromancer 25=Cultist
+                               // 26=Starcaller 27=SunCleric 28=Tinker 29=Venomancer 30=Reaper
+                               // 31=Primalist 32=Runemaster
         char const* specName;      // premade-spec template to force
         char const* fallbackSpec;  // substring to match if the exact name is absent
         char const* role;          // "tank" | "heal" | "dps" (for the record/UI)
@@ -78,6 +83,20 @@ namespace DcTestComp
         // tab 0 the "blood"/"tank assist" strategies and IsTank(bySpec) reads
         // tab 0 as a tank, while frost and unholy both come back as DPS.
         { 6,  "blood pve", "blood", "tank" },  // death knight (WotLK only)
+        // CoA custom classes: specName/fallbackSpec unused — provisioned via
+        // AssignCoaRole which picks from SpecializationsByRole at runtime.
+        { 14, "coa", "coa", "tank" },  // Felsworn (Tyrant)
+        { 17, "coa", "coa", "tank" },  // Knight of Xoroth (Defiance)
+        { 18, "coa", "coa", "tank" },  // Guardian (Vanguard)
+        { 19, "coa", "coa", "tank" },  // Templar (Oathkeeper)
+        { 20, "coa", "coa", "tank" },  // Bloodmage (Eternal)
+        { 25, "coa", "coa", "tank" },  // Cultist (Dreadnought)
+        { 26, "coa", "coa", "tank" },  // Starcaller (Moon Guard)
+        { 27, "coa", "coa", "tank" },  // Sun Cleric (Seraphim)
+        { 29, "coa", "coa", "tank" },  // Venomancer (Fortitude)
+        { 30, "coa", "coa", "tank" },  // Reaper (Domination)
+        { 31, "coa", "coa", "tank" },  // Primalist (Mountain King)
+        { 15, "coa", "coa", "tank" },  // Witch Hunter (Black Knight)
     };
 
     inline constexpr Slot kHealPool[] = {
@@ -86,6 +105,16 @@ namespace DcTestComp
         { 2,  "holy pve",  "holy",  "heal" },  // paladin
         { 7,  "resto pve", "resto", "heal" },  // shaman
         { 11, "resto pve", "resto", "heal" },  // druid
+        // CoA custom classes with heal specializations. Tinker (28) and
+        // Venomancer (29) omitted: their only heal specs are excluded by default
+        // in sPlayerbotAIConfig.coaExcludedSpecializations.
+        { 13, "coa", "coa", "heal" },  // Witch Doctor (Brewing)
+        { 20, "coa", "coa", "heal" },  // Bloodmage (Fleshweaver)
+        { 22, "coa", "coa", "heal" },  // Chronomancer (Time)
+        { 24, "coa", "coa", "heal" },  // Pyromancer (Flameweaving)
+        { 25, "coa", "coa", "heal" },  // Cultist (Heretic)
+        { 26, "coa", "coa", "heal" },  // Starcaller (Moon Priest)
+        { 27, "coa", "coa", "heal" },  // Sun Cleric (Blessings)
     };
 
     inline constexpr Slot kDpsPool[] = {
@@ -111,6 +140,28 @@ namespace DcTestComp
         { 11, "cat pve",      "cat",      "dps" },  // druid
         { 6,  "frost pve",    "frost",    "dps" },  // death knight (WotLK only)
         { 6,  "unholy pve",   "unholy",   "dps" },  // death knight (WotLK only)
+        // CoA custom classes: all 21 have DPS specializations.
+        { 12, "coa", "coa", "dps" },  // Barbarian
+        { 13, "coa", "coa", "dps" },  // Witch Doctor
+        { 14, "coa", "coa", "dps" },  // Felsworn
+        { 15, "coa", "coa", "dps" },  // Witch Hunter
+        { 16, "coa", "coa", "dps" },  // Stormbringer
+        { 17, "coa", "coa", "dps" },  // Knight of Xoroth
+        { 18, "coa", "coa", "dps" },  // Guardian
+        { 19, "coa", "coa", "dps" },  // Templar
+        { 20, "coa", "coa", "dps" },  // Bloodmage
+        { 21, "coa", "coa", "dps" },  // Ranger
+        { 22, "coa", "coa", "dps" },  // Chronomancer
+        { 23, "coa", "coa", "dps" },  // Necromancer
+        { 24, "coa", "coa", "dps" },  // Pyromancer
+        { 25, "coa", "coa", "dps" },  // Cultist
+        { 26, "coa", "coa", "dps" },  // Starcaller
+        { 27, "coa", "coa", "dps" },  // Sun Cleric
+        { 28, "coa", "coa", "dps" },  // Tinker
+        { 29, "coa", "coa", "dps" },  // Venomancer
+        { 30, "coa", "coa", "dps" },  // Reaper
+        { 31, "coa", "coa", "dps" },  // Primalist
+        { 32, "coa", "coa", "dps" },  // Runemaster
     };
 
     // Size bounds for a run (raid-support Plan D): a 5-man is the default, a
