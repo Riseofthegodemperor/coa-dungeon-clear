@@ -1011,8 +1011,11 @@ void DcLeaderSignal::NoteLeaderHit(Player* attacker)
 {
     if (!attacker || !attacker->IsInCombat())
         return;
+    Map const* map = attacker->GetMap();
+    if (!map || !map->IsDungeon())
+        return;
     PlayerbotAI* ai = GET_PLAYERBOT_AI(attacker);
-    if (!ai)
+    if (!ai || !ai->GetAiObjectContext())
         return;
     DcRunState& run = DcRun::Of(ai);
     // `enabled` is leader-owned: followers never set it, so this is the leader.
@@ -1028,8 +1031,13 @@ void DcLeaderSignal::NoteLeaderHit(Player* attacker)
 
 void DcLeaderSignal::NoteLeaderEnterCombat(Player* player)
 {
-    PlayerbotAI* ai = player ? GET_PLAYERBOT_AI(player) : nullptr;
-    if (!ai)
+    if (!player)
+        return;
+    Map const* map = player->GetMap();
+    if (!map || !map->IsDungeon())
+        return;
+    PlayerbotAI* ai = GET_PLAYERBOT_AI(player);
+    if (!ai || !ai->GetAiObjectContext())
         return;
     DcRunState& run = DcRun::Of(ai);
     if (!run.enabled)
