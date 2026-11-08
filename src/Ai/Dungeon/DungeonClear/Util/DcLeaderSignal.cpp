@@ -310,10 +310,10 @@ Player* DcLeaderSignal::FindLeaderTank(Player* reference)
     Group* group = reference->GetGroup();
     if (!group)
     {
-        // Solo: a tank bot leads itself; anyone else has no leader. Cheap —
-        // no group walk, so no caching either.
-        return (PlayerbotAI::IsTank(reference) && GET_PLAYERBOT_AI(reference))
-                   ? reference : nullptr;
+        // Solo: any character with a PlayerbotAI leads itself — a selfbot
+        // player who is not a tank class must still be found as the leader so
+        // DispatchToTankBots can deliver dc commands to them.
+        return GET_PLAYERBOT_AI(reference) ? reference : nullptr;
     }
 
     // The election is per (group, map instance): members on another Map are
