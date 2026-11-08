@@ -1134,8 +1134,7 @@ namespace
         uint32 const configured = DcSettings::GetUInt(bot, key);
 
         // SCRIPTED-STAGE MUSTER: eat/drink to the muster floor, not merely to the
-        // configured rest target (0 by default, which hands the bot to the stock
-        // eat/drink that stops at AlmostFullHealth/HighMana — 85/65).
+        // configured rest target.
         //
         // Without this the muster is a demand with nothing behind it: the gate
         // would ask for 90/80, the bots would top out at 85/65, and every stage
@@ -1153,6 +1152,17 @@ namespace
                                             ? DC_SCRIPTED_PULL_MUSTER_MP
                                             : DC_SCRIPTED_PULL_MUSTER_HP));
         }
+
+        // FollowTank (DcRel 25.0) fires on every non-combat tick with no distance
+        // gate, so the stock eat/drink actions (rel 3.0) are permanently blocked
+        // in a DC run. When no explicit threshold is configured, use the same
+        // DcPartyState defaults the between-pulls gate uses so this trigger carries
+        // the eating at NeedsRest (rel 26.5), which does clear the follow rung.
+        if (configured == 0)
+            return static_cast<uint32>(
+                std::strcmp(key, "RestManaPct") == 0
+                    ? DcPartyState::RestMinMpPct(bot)
+                    : DcPartyState::RestMinHpPct(bot));
 
         return configured;
     }
