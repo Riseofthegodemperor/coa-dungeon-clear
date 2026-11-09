@@ -71,6 +71,8 @@ namespace
         if (GET_PLAYERBOT_AI(owner))
             if (!DcPlayerbotCompat::IsSelfBot(owner))
                 return false;
+        if (bot == owner)
+            return true;
         if (!bot || !bot->GetGroup())
             return false;
         if (bot->GetGroup()->IsMember(owner->GetGUID()))
